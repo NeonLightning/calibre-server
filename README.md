@@ -3,6 +3,9 @@
 A full‑featured, self‑hosted web server for your Calibre ebook collection.  
 Browse, search, filter, read, and download your books from any device with a modern browser.
 
+<img width="960" height="540" alt="cs_ss2" src="https://github.com/user-attachments/assets/2973f25f-5c5c-48ea-9927-67e2ca0d422a" />
+<img width="960" height="540" alt="cs_ss1" src="https://github.com/user-attachments/assets/4f737c4e-7240-4b94-ba09-bd46613a4d13" />
+
 ## ✨ Features
 
 - **Multi‑select filters** – Authors, Series, Tags, Formats (AND logic)
