@@ -5,6 +5,8 @@ Browse, search, filter, read, and download your books from any device with a mod
 
 <img width="960" height="540" alt="cs_ss2" src="https://github.com/user-attachments/assets/2973f25f-5c5c-48ea-9927-67e2ca0d422a" />
 <img width="960" height="540" alt="cs_ss1" src="https://github.com/user-attachments/assets/4f737c4e-7240-4b94-ba09-bd46613a4d13" />
+<img width="960" height="540" alt="cs_ss3" src="https://github.com/user-attachments/assets/405a75cd-8df9-43a2-9699-5965bb6aac20" />
+<img width="960" height="540" alt="cs_ss4" src="https://github.com/user-attachments/assets/7e13cb9c-5bdd-4058-838b-3ae7d4997b21" />
 
 ## ✨ Features
 
