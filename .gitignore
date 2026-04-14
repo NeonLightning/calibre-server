@@ -2,3 +2,4 @@
 /pyinstaller-env
 /screenshots
 build.bat
+build.bat.ps1
