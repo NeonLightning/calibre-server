@@ -166,6 +166,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 	<div class="settings-row"><label>Background</label><input type="color" id="color-bg" oninput="updateBackground(this.value)"><span class="color-preview" id="preview-bg"></span></div>
 	<div class="settings-row"><label>Card</label><input type="color" id="color-card" oninput="updateColor('--card', this.value)"><span class="color-preview" id="preview-card"></span></div>
 	<div class="settings-row"><label>Accent</label><input type="color" id="color-accent" oninput="updateAccent(this.value)"><span class="color-preview" id="preview-accent"></span></div>
+	<div class="settings-row"><label>Accent2</label><input type="color" id="color-accent2" oninput="updateAccent(this.value)"><span class="color-preview" id="preview-accent2"></span></div>
 	<div class="settings-row"><label>Text</label><input type="color" id="color-text" oninput="updateColor('--text', this.value)"><span class="color-preview" id="preview-text"></span></div>
 	<div class="settings-row"><label>Filter panel height (px)</label><input type="number" id="panel-height" step="10" min="120" max="600" onchange="setPanelHeightFromInput(this.value)"></div>
 	<div class="settings-row"><label><input type="checkbox" id="auto-save" checked> Auto-save settings</label></div>
@@ -236,6 +237,7 @@ function updateColorPreviews() {
 	document.getElementById('preview-bg').style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
 	document.getElementById('preview-card').style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--card').trim();
 	document.getElementById('preview-accent').style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+	document.getElementById('preview-accent2').style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim();
 	document.getElementById('preview-text').style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
 }
 function setPanelHeightFromInput(h) {
@@ -268,6 +270,7 @@ function applyThemePreset(theme) {
 	document.getElementById('color-bg').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
 	document.getElementById('color-card').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--card').trim());
 	document.getElementById('color-accent').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--accent').trim());
+	document.getElementById('color-accent2').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim());
 	document.getElementById('color-text').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--text').trim());
 	updateColorPreviews();
 	if (document.getElementById('auto-save').checked) saveSettings();
@@ -311,6 +314,7 @@ function loadSettings() {
 		document.getElementById('color-bg').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
 		document.getElementById('color-card').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--card').trim());
 		document.getElementById('color-accent').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--accent').trim());
+		document.getElementById('color-accent2').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim());
 		document.getElementById('color-text').value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--text').trim());
 	} else {
 		applyThemePreset('dark');
