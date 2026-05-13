@@ -37,12 +37,13 @@ TEMPLATE = r"""<!DOCTYPE html>
 	#search-box:focus { border-color: var(--accent); }
 	.btn { cursor: pointer; border: none; border-radius: 7px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600; transition: opacity 0.15s; background: var(--card); color: var(--text); border: 1px solid var(--border); }
 	.btn:hover { opacity: 0.85; background: var(--accent); color: white; border-color: var(--accent); }
+	.btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 	.btn-outline { background: transparent; color: var(--accent2); border: 1px solid var(--accent); }
 	.btn-sm { padding: 0.2rem 0.7rem; font-size: 0.78rem; }
 	.btn-dl { background: #2d4a22; color: var(--green); border-color: #3d6b2e; }
 
 	/* ── Filters bar ── */
-	#filters { position: relative; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.6rem 2rem; display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: flex-start; }
+	#filters { position: relative; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.6rem 2rem; display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: flex-start; padding: 0.6rem 2rem 1.4rem 2rem;}
 	#resize-handle { position: absolute; bottom: 0; left: 0; right: 0; height: 10px; background: var(--border); text-align: center; line-height: 8px; font-size: 12px; letter-spacing: 2px; color: var(--muted); cursor: ns-resize; user-select: none; border-radius: 0 0 6px 6px; }
 	#resize-handle:hover { background: var(--accent); color: white; }
 	#filters label { color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem; }
@@ -63,6 +64,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 	.book-info { padding: 0.6rem; flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
 	.book-title { font-size: 0.82rem; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 	.book-author { font-size: 0.74rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.book-pubdate { font-size: 0.70rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.book-series { font-size: 0.72rem; color: var(--accent2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
 	.book-formats { display: flex; gap: 0.25rem; flex-wrap: wrap; margin-top: 0.3rem; }
 	.fmt-badge { background: #1e2640; color: var(--accent2); border: 1px solid var(--border); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.68rem; font-weight: 700; }
@@ -121,12 +123,43 @@ TEMPLATE = r"""<!DOCTYPE html>
 	#cbz-viewer img { max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 	.btn-read { background: #1a2e40; color: #60c0f0; border-color: #2a4a60; }
 	.btn-read:hover { background: #2a4a60; border-color: #60c0f0; }
+	#sort-controls { display: flex; flex-direction: column; gap: 0.4rem; }
+	#sort-direction-buttons { display: flex; gap: 0.4rem; }
+	#sort-direction-buttons button { flex: 1; }
 	#toc-panel { position: absolute; top: 0; left: 0; bottom: 0; width: 280px; background: var(--surface); border-right: 1px solid var(--border); z-index: 20; overflow-y: auto; transform: translateX(-100%); transition: transform 0.2s; display: flex; flex-direction: column; }
 	#toc-panel.open { transform: translateX(0); }
 	#toc-panel h3 { padding: 0.8rem 1rem; font-size: 0.85rem; color: var(--accent2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
 	.toc-item { padding: 0.5rem 1rem; font-size: 0.82rem; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); }
 	.toc-item:hover { background: var(--card); color: var(--accent2); }
 	.toc-item.sub { padding-left: 1.8rem; font-size: 0.78rem; color: var(--muted); }
+
+	@media (max-width: 700px) {
+		#filters {
+			flex-direction: column;
+			align-items: stretch;
+			height: auto !important;
+			padding-bottom: 1rem;
+		}
+		#filters select,
+		#f-sort {
+			width: 100%;
+			min-width: 0;
+		}
+		select[multiple] {
+			height: 120px !important;
+			min-height: 120px;
+		}
+		#sort-controls {
+			width: 100%;
+		}
+		#result-count {
+			margin-left: 0;
+			margin-top: 0.5rem;
+		}
+		#resize-handle {
+			display: none;
+		}
+	}
 </style>
 </head>
 <body>
@@ -142,10 +175,16 @@ TEMPLATE = r"""<!DOCTYPE html>
 	<label>Series</label><select id="f-series" multiple size="2" onchange="applyFilters()"></select>
 	<label>Tag</label><select id="f-tag" multiple size="2" onchange="applyFilters()"></select>
 	<label>Format</label><select id="f-format" multiple size="2" onchange="applyFilters()"></select>
-	<label>Sort by</label><select id="f-sort" onchange="applyFilters()">
-		<option value="title">Title</option><option value="author">Author</option>
-		<option value="series">Series</option><option value="date">Date added</option>
-	</select>
+	<div id="sort-controls">
+		<label>Sort by</label><select id="f-sort" onchange="applyFilters()">
+			<option value="title">Title</option><option value="author">Author</option>
+			<option value="series">Series</option><option value="date">Date added</option><option value="published">Published date</option>
+		</select>
+		<div id="sort-direction-buttons">
+			<button id="sort-asc-btn">↑ ASC</button>
+			<button id="sort-desc-btn">↓ DESC</button>
+		</div>
+	</div>
 	<span id="result-count"></span>
 	<button id="dl-collection-btn" class="btn btn-dl btn-sm" style="display:none" onclick="downloadCollection()">⬇ Download filtered</button>
 	<div id="resize-handle" title="Drag to resize filter panel">⋮⋮⋮</div>
@@ -210,6 +249,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 // ========== GLOBALS ==========
 let allBooks = [], filtered = [];
 let currentModalBook = null;
+let sortDirection = 'desc';  // 'asc' or 'desc'
 const filterPanel = document.getElementById('filters');
 const resizeHandle = document.getElementById('resize-handle');
 const multiSelects = document.querySelectorAll('select[multiple]');
@@ -247,11 +287,23 @@ function setPanelHeightFromInput(h) {
 	if (document.getElementById('auto-save').checked) saveSettings();
 }
 function setPanelHeight(h) {
+	if (window.innerWidth <= 700 || 'ontouchstart' in window) {
+		filterPanel.style.height = 'auto';
+		multiSelects.forEach(sel => {
+			sel.style.height = '120px';
+			sel.style.minHeight = '120px';
+			sel.style.width = '100%';
+		});
+		return;
+	}
 	let newHeight = Math.min(Math.max(h, 120), window.innerHeight * 0.6);
 	filterPanel.style.height = newHeight + 'px';
-	let selectHeight = newHeight - 20;
-	if (selectHeight < 70) selectHeight = 70;
-	multiSelects.forEach(sel => sel.style.height = selectHeight + 'px');
+	let selectHeight = newHeight - 40;
+	if (selectHeight < 70)
+		selectHeight = 70;
+	multiSelects.forEach(sel => {
+		sel.style.height = selectHeight + 'px';
+	});
 	document.getElementById('panel-height').value = newHeight;
 }
 function applyThemePreset(theme) {
@@ -331,19 +383,27 @@ function toggleSettings() {
 }
 
 // ========== FILTER PANEL RESIZE ==========
-function onMouseMove(e) { setPanelHeight(startHeight + (e.clientY - startY)); }
-function onMouseUp() {
-	document.removeEventListener('mousemove', onMouseMove);
-	document.removeEventListener('mouseup', onMouseUp);
-	if (document.getElementById('auto-save').checked) saveSettings();
-}
-resizeHandle.addEventListener('mousedown', (e) => {
-	e.preventDefault();
-	startY = e.clientY;
-	startHeight = filterPanel.offsetHeight;
-	document.addEventListener('mousemove', onMouseMove);
-	document.addEventListener('mouseup', onMouseUp);
-});
+if (!(window.innerWidth <= 700 || 'ontouchstart' in window)) {
+	function onMouseMove(e) {
+		setPanelHeight(startHeight + (e.clientY - startY));
+	}
+	function onMouseUp() {
+		document.removeEventListener('mousemove', onMouseMove);
+		document.removeEventListener('mouseup', onMouseUp);
+		if (document.getElementById('auto-save').checked)
+			saveSettings();
+	}
+	resizeHandle.addEventListener('mousedown', (e) => {
+		e.preventDefault();
+		startY = e.clientY;
+		startHeight = filterPanel.offsetHeight;
+		document.addEventListener('mousemove', onMouseMove);
+		document.addEventListener('mouseup', onMouseUp);
+	});
+} else {
+	resizeHandle.style.display = 'none';
+	filterPanel.style.height = 'auto';
+};
 
 // ========== BOOK DATA & FILTERS ==========
 async function loadBooks() { const r = await fetch('/api/books'); allBooks = await r.json(); populateStaticFilters(); applyFilters(); }
@@ -366,6 +426,11 @@ function updateFormatFilter() {
 	sel.innerHTML = '';
 	formats.forEach(f => { const o = document.createElement('option'); o.value = o.textContent = f; if (selected.includes(f)) o.selected = true; sel.appendChild(o); });
 }
+function setSortDirection(dir) {
+	sortDirection = dir;
+	document.getElementById('sort-asc-btn').classList.toggle('active', dir === 'asc');
+	document.getElementById('sort-desc-btn').classList.toggle('active', dir === 'desc');
+}
 function applyFilters() {
 	const q = document.getElementById('search-box').value.toLowerCase();
 	const authors = getSelected(document.getElementById('f-author'));
@@ -383,10 +448,27 @@ function applyFilters() {
 	});
 	updateFormatFilter();
 	filtered.sort((a,b) => {
-		if (sort === 'author') return (a.authors[0]||'').localeCompare(b.authors[0]||'');
-		if (sort === 'series') { let sc = (a.series||'zzz').localeCompare(b.series||'zzz'); return sc !== 0 ? sc : (a.series_index||0)-(b.series_index||0); }
-		if (sort === 'date') return b.id - a.id;
-		return a.title.localeCompare(b.title);
+		let result = 0;
+		if (sort === 'author') {
+			result = (a.authors[0]||'').localeCompare(b.authors[0]||'');
+		} else if (sort === 'series') {
+			let sc = (a.series||'zzz').localeCompare(b.series||'zzz');
+			result = sc !== 0 ? sc : (a.series_index||0)-(b.series_index||0);
+		} else if (sort === 'date') {
+			result = b.id - a.id;
+		} else if (sort === 'published') {
+			const isUnknownA = !a.pubdate || a.pubdate === '1800-01-01';
+			const isUnknownB = !b.pubdate || b.pubdate === '1800-01-01';
+			if (isUnknownA && !isUnknownB) return 1;
+			if (!isUnknownA && isUnknownB) return -1;
+			if (isUnknownA && isUnknownB) return 0;
+			const dA = new Date(a.pubdate);
+			const dB = new Date(b.pubdate);
+			result = dB - dA;
+		} else {
+			result = a.title.localeCompare(b.title);
+		}
+		return sortDirection === 'asc' ? -result : result;
 	});
 	renderGrid(); updateDlBar();
 }
@@ -402,7 +484,8 @@ function renderGrid() {
 		const fmtHtml = b.formats.map(f=>`<span class="fmt-badge">${f}</span>`).join('');
 		const pct = getReadPct(b);
 		const progressHtml = pct > 0 ? `<div class="book-progress-wrap"><div class="book-progress-bar" style="width:${pct}%"></div></div>` : '';
-		card.innerHTML = `${coverHtml}<div class="book-info"><div class="book-title">${esc(b.title)}</div><div class="book-author">${esc(b.authors[0]||'Unknown')}</div>${seriesHtml}<div class="book-formats">${fmtHtml}</div></div>${progressHtml}`;
+		const pubdateHtml = b.pubdate && b.pubdate !== '1800-01-01' ? `<div class="book-pubdate">${b.pubdate}</div>` : '<div class="book-pubdate">Unknown</div>';
+		card.innerHTML = `${coverHtml}<div class="book-info"><div class="book-title">${esc(b.title)}</div><div class="book-author">${esc(b.authors[0]||'Unknown')}</div>${pubdateHtml}${seriesHtml}<div class="book-formats">${fmtHtml}</div></div>${progressHtml}`;
 		grid.appendChild(card);
 	});
 }
@@ -687,6 +770,7 @@ document.addEventListener('keydown', e=>{
 document.getElementById('search-box').addEventListener('input', applyFilters);
 loadSettings();
 setPanelHeight(filterPanel.offsetHeight);
+setSortDirection('desc');
 loadBooks();
 </script>
 </body>
@@ -704,81 +788,86 @@ SUPPORTED_FORMATS = {"EPUB","PDF","MOBI","TXT","CBZ","CBR","AZW","AZW3","LIT","D
 # ========== DATABASE HELPERS ==========
 
 def get_db():
-    db_path = LIBRARY_PATH / "metadata.db"
-    if not db_path.exists():
-        raise FileNotFoundError(f"metadata.db not found at {db_path}")
-    conn = sqlite3.connect(str(db_path))
-    conn.row_factory = sqlite3.Row
-    return conn
+	db_path = LIBRARY_PATH / "metadata.db"
+	if not db_path.exists():
+		raise FileNotFoundError(f"metadata.db not found at {db_path}")
+	conn = sqlite3.connect(str(db_path))
+	conn.row_factory = sqlite3.Row
+	return conn
 
 
 def fetch_all_books():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT b.id,b.title,b.path,b.has_cover,b.timestamp,b.series_index FROM books b ORDER BY b.sort")
-    books_raw = cur.fetchall()
-    cur.execute("SELECT bal.book, a.name FROM books_authors_link bal JOIN authors a ON a.id=bal.author")
-    author_map = {}
-    for row in cur.fetchall():
-        author_map.setdefault(row[0], []).append(row[1])
-    cur.execute("SELECT btl.book, t.name FROM books_tags_link btl JOIN tags t ON t.id=btl.tag")
-    tag_map = {}
-    for row in cur.fetchall():
-        tag_map.setdefault(row[0], []).append(row[1])
-    cur.execute("SELECT bsl.book, s.name FROM books_series_link bsl JOIN series s ON s.id=bsl.series")
-    series_map = {row[0]: row[1] for row in cur.fetchall()}
-    cur.execute("SELECT book, format, name FROM data")
-    fmt_map, file_map = {}, {}
-    for row in cur.fetchall():
-        fmt = row[1].upper()
-        if fmt in SUPPORTED_FORMATS:
-            fmt_map.setdefault(row[0], []).append(fmt)
-            file_map[(row[0], fmt)] = row[2]
-    cur.execute("SELECT book, text FROM comments")
-    comment_map = {row[0]: row[1] for row in cur.fetchall()}
-    conn.close()
-    books = []
-    for b in books_raw:
-        bid = b["id"]
-        books.append({
-            "id": bid, "title": b["title"], "path": b["path"], "has_cover": bool(b["has_cover"]),
-            "authors": author_map.get(bid, []), "tags": tag_map.get(bid, []),
-            "series": series_map.get(bid), "series_index": b["series_index"],
-            "formats": sorted(fmt_map.get(bid, [])), "comments": comment_map.get(bid, "")
-        })
-    return books, file_map
+	conn = get_db()
+	cur = conn.cursor()
+	cur.execute("SELECT b.id,b.title,b.path,b.has_cover,b.pubdate,b.series_index FROM books b ORDER BY b.sort")
+	books_raw = cur.fetchall()
+	cur.execute("SELECT bal.book, a.name FROM books_authors_link bal JOIN authors a ON a.id=bal.author")
+	author_map = {}
+	for row in cur.fetchall():
+		author_map.setdefault(row[0], []).append(row[1])
+	cur.execute("SELECT btl.book, t.name FROM books_tags_link btl JOIN tags t ON t.id=btl.tag")
+	tag_map = {}
+	for row in cur.fetchall():
+		tag_map.setdefault(row[0], []).append(row[1])
+	cur.execute("SELECT bsl.book, s.name FROM books_series_link bsl JOIN series s ON s.id=bsl.series")
+	series_map = {row[0]: row[1] for row in cur.fetchall()}
+	cur.execute("SELECT book, format, name FROM data")
+	fmt_map, file_map = {}, {}
+	for row in cur.fetchall():
+		fmt = row[1].upper()
+		if fmt in SUPPORTED_FORMATS:
+			fmt_map.setdefault(row[0], []).append(fmt)
+			file_map[(row[0], fmt)] = row[2]
+	cur.execute("SELECT book, text FROM comments")
+	comment_map = {row[0]: row[1] for row in cur.fetchall()}
+	conn.close()
+	books = []
+	for b in books_raw:
+		bid = b["id"]
+		if b["pubdate"]:
+			pubdate_str = str(b["pubdate"].date()) if hasattr(b["pubdate"], 'date') else str(b["pubdate"])[:10]
+		else:
+			pubdate_str = "1800-01-01"
+		books.append({
+			"id": bid, "title": b["title"], "path": b["path"], "has_cover": bool(b["has_cover"]),
+			"authors": author_map.get(bid, []), "tags": tag_map.get(bid, []),
+			"series": series_map.get(bid), "series_index": b["series_index"],
+			"formats": sorted(fmt_map.get(bid, [])), "comments": comment_map.get(bid, ""),
+			"pubdate": pubdate_str
+		})
+	return books, file_map
 
 
 # ========== ROUTES ==========
 
 @app.route("/")
 def index():
-    return render_template_string(TEMPLATE)
+	return render_template_string(TEMPLATE)
 
 
 @app.route("/api/books")
 def api_books():
-    books, _ = fetch_all_books()
-    return jsonify([{k:v for k,v in b.items() if k!="path"} for b in books])
+	books, _ = fetch_all_books()
+	return jsonify([{k:v for k,v in b.items() if k!="path"} for b in books])
 
 
 @app.route("/cover/<int:book_id>")
 def cover(book_id):
-    books, _ = fetch_all_books()
-    book = next((b for b in books if b["id"]==book_id), None)
-    if not book or not book["has_cover"]:
-        abort(404)
-    cover_path = LIBRARY_PATH / book["path"] / "cover.jpg"
-    return send_file(str(cover_path), mimetype="image/jpeg") if cover_path.exists() else abort(404)
+	books, _ = fetch_all_books()
+	book = next((b for b in books if b["id"]==book_id), None)
+	if not book or not book["has_cover"]:
+		abort(404)
+	cover_path = LIBRARY_PATH / book["path"] / "cover.jpg"
+	return send_file(str(cover_path), mimetype="image/jpeg") if cover_path.exists() else abort(404)
 
 
 READER_MIME = {
-    "EPUB": "application/epub+zip",
-    "PDF":  "application/pdf",
-    "TXT":  "text/plain; charset=utf-8",
-    "CBZ":  "application/zip",
-    "CBR":  "application/zip",
-    "MOBI": "text/html; charset=utf-8",
+	"EPUB": "application/epub+zip",
+	"PDF":  "application/pdf",
+	"TXT":  "text/plain; charset=utf-8",
+	"CBZ":  "application/zip",
+	"CBR":  "application/zip",
+	"MOBI": "text/html; charset=utf-8",
 }
 READABLE_FORMATS = set(READER_MIME.keys())
 
@@ -786,173 +875,173 @@ READABLE_FORMATS = set(READER_MIME.keys())
 # ========== CBR CONVERSION ==========
 
 def _cbr_to_zip(filepath):
-    try:
-        import rarfile
-    except ImportError:
-        return None, "rarfile not installed – run:  pip install rarfile"
-    try:
-        buf = io.BytesIO()
-        with rarfile.RarFile(str(filepath)) as rf:
-            names = sorted(n for n in rf.namelist()
-                        if re.search(r'\.(jpe?g|png|gif|webp)$', n, re.I))
-            if not names:
-                return None, "No image files found inside the CBR archive."
-            with zipfile.ZipFile(buf, 'w', zipfile.ZIP_STORED) as zf:
-                for name in names:
-                    zf.writestr(name, rf.read(name))
-        buf.seek(0)
-        return buf, None
-    except Exception as exc:
-        return None, str(exc)
+	try:
+		import rarfile
+	except ImportError:
+		return None, "rarfile not installed – run:  pip install rarfile"
+	try:
+		buf = io.BytesIO()
+		with rarfile.RarFile(str(filepath)) as rf:
+			names = sorted(n for n in rf.namelist()
+						if re.search(r'\.(jpe?g|png|gif|webp)$', n, re.I))
+			if not names:
+				return None, "No image files found inside the CBR archive."
+			with zipfile.ZipFile(buf, 'w', zipfile.ZIP_STORED) as zf:
+				for name in names:
+					zf.writestr(name, rf.read(name))
+		buf.seek(0)
+		return buf, None
+	except Exception as exc:
+		return None, str(exc)
 
 
 # ========== MOBI CONVERSION (returns clean HTML, theme injected client-side) ==========
 
 def _mobi_to_html(filepath):
-    try:
-        import mobi
-    except ImportError:
-        return None, "mobi library not installed – run: pip install mobi"
-    temp_dir = None
-    try:
-        temp_dir, extracted_file_path = mobi.extract(str(filepath))
-        if not extracted_file_path or not Path(extracted_file_path).exists():
-            return None, "MOBI extraction failed: No output file was created."
-        raw_bytes = Path(extracted_file_path).read_bytes()
-        try:
-            html_content = raw_bytes.decode('utf-8')
-        except UnicodeDecodeError:
-            html_content = raw_bytes.decode('latin-1')
-            html_content = re.sub(r'Â\s', ' ', html_content)
-            html_content = re.sub(r'Â ', ' ', html_content)
-            html_content = html_content.replace('Â', '')
-        base_dir = Path(extracted_file_path).parent
-        def _inline_images(match):
-            src = match.group(1)
-            if src.startswith(("data:", "http://", "https://")):
-                return match.group(0)
-            img_path = base_dir / src
-            if not img_path.exists():
-                img_path = base_dir / Path(src).name
-            if img_path.exists():
-                ext = img_path.suffix.lower().lstrip(".")
-                mime = {"jpg": "jpeg", "jpeg": "jpeg", "png": "png", "gif": "gif", "webp": "webp"}.get(ext, "octet-stream")
-                data = base64.b64encode(img_path.read_bytes()).decode()
-                return f'src="data:image/{mime};base64,{data}"'
-            return match.group(0)
-        html_content = re.sub(r'src="([^"]*)"', _inline_images, html_content)
-        # Remove any existing style/head to avoid conflicts, theme will be added by client
-        html_content = re.sub(r'<style[^>]*>.*?</style>', '', html_content, flags=re.DOTALL)
-        if not re.search(r'<head', html_content, re.I):
-            html_content = f"<head><meta charset='utf-8'></head>{html_content}"
-        return html_content, None
-    except Exception as exc:
-        return None, str(exc)
-    finally:
-        if temp_dir and Path(temp_dir).exists():
-            shutil.rmtree(temp_dir, ignore_errors=True)
+	try:
+		import mobi
+	except ImportError:
+		return None, "mobi library not installed – run: pip install mobi"
+	temp_dir = None
+	try:
+		temp_dir, extracted_file_path = mobi.extract(str(filepath))
+		if not extracted_file_path or not Path(extracted_file_path).exists():
+			return None, "MOBI extraction failed: No output file was created."
+		raw_bytes = Path(extracted_file_path).read_bytes()
+		try:
+			html_content = raw_bytes.decode('utf-8')
+		except UnicodeDecodeError:
+			html_content = raw_bytes.decode('latin-1')
+			html_content = re.sub(r'Â\s', ' ', html_content)
+			html_content = re.sub(r'Â ', ' ', html_content)
+			html_content = html_content.replace('Â', '')
+		base_dir = Path(extracted_file_path).parent
+		def _inline_images(match):
+			src = match.group(1)
+			if src.startswith(("data:", "http://", "https://")):
+				return match.group(0)
+			img_path = base_dir / src
+			if not img_path.exists():
+				img_path = base_dir / Path(src).name
+			if img_path.exists():
+				ext = img_path.suffix.lower().lstrip(".")
+				mime = {"jpg": "jpeg", "jpeg": "jpeg", "png": "png", "gif": "gif", "webp": "webp"}.get(ext, "octet-stream")
+				data = base64.b64encode(img_path.read_bytes()).decode()
+				return f'src="data:image/{mime};base64,{data}"'
+			return match.group(0)
+		html_content = re.sub(r'src="([^"]*)"', _inline_images, html_content)
+		# Remove any existing style/head to avoid conflicts, theme will be added by client
+		html_content = re.sub(r'<style[^>]*>.*?</style>', '', html_content, flags=re.DOTALL)
+		if not re.search(r'<head', html_content, re.I):
+			html_content = f"<head><meta charset='utf-8'></head>{html_content}"
+		return html_content, None
+	except Exception as exc:
+		return None, str(exc)
+	finally:
+		if temp_dir and Path(temp_dir).exists():
+			shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 # ========== READ ROUTE ==========
 
 @app.route("/read/<int:book_id>/<fmt>")
 def read_book(book_id, fmt):
-    fmt = fmt.upper()
-    if fmt not in READABLE_FORMATS:
-        abort(415)
-    books, file_map = fetch_all_books()
-    book = next((b for b in books if b["id"] == book_id), None)
-    if not book:
-        abort(404)
-    stem = file_map.get((book_id, fmt))
-    if not stem:
-        abort(404)
-    filepath = LIBRARY_PATH / book["path"] / f"{stem}.{fmt.lower()}"
-    if not filepath.exists():
-        abort(404)
-    if fmt == "CBR":
-        buf, err = _cbr_to_zip(filepath)
-        if err:
-            return f"<pre>CBR error: {err}</pre>", 500
-        return send_file(buf, mimetype="application/zip", as_attachment=False)
-    if fmt == "MOBI":
-        html, err = _mobi_to_html(filepath)
-        if err:
-            return (f"<!doctype html><html><body style='background:#0f1117;color:#e2e8f0;"
-                    f"font-family:sans-serif;padding:2rem'>"
-                    f"<h2>⚠️ MOBI error</h2><pre>{err}</pre></body></html>"), 500
-        from flask import Response
-        return Response(html, mimetype="text/html; charset=utf-8")
-    return send_file(str(filepath), mimetype=READER_MIME[fmt], as_attachment=False)
+	fmt = fmt.upper()
+	if fmt not in READABLE_FORMATS:
+		abort(415)
+	books, file_map = fetch_all_books()
+	book = next((b for b in books if b["id"] == book_id), None)
+	if not book:
+		abort(404)
+	stem = file_map.get((book_id, fmt))
+	if not stem:
+		abort(404)
+	filepath = LIBRARY_PATH / book["path"] / f"{stem}.{fmt.lower()}"
+	if not filepath.exists():
+		abort(404)
+	if fmt == "CBR":
+		buf, err = _cbr_to_zip(filepath)
+		if err:
+			return f"<pre>CBR error: {err}</pre>", 500
+		return send_file(buf, mimetype="application/zip", as_attachment=False)
+	if fmt == "MOBI":
+		html, err = _mobi_to_html(filepath)
+		if err:
+			return (f"<!doctype html><html><body style='background:#0f1117;color:#e2e8f0;"
+					f"font-family:sans-serif;padding:2rem'>"
+					f"<h2>⚠️ MOBI error</h2><pre>{err}</pre></body></html>"), 500
+		from flask import Response
+		return Response(html, mimetype="text/html; charset=utf-8")
+	return send_file(str(filepath), mimetype=READER_MIME[fmt], as_attachment=False)
 
 
 # ========== DOWNLOAD ROUTES ==========
 
 @app.route("/download/<int:book_id>/<fmt>")
 def download_book(book_id, fmt):
-    fmt = fmt.upper()
-    books, file_map = fetch_all_books()
-    book = next((b for b in books if b["id"]==book_id), None)
-    if not book:
-        abort(404)
-    stem = file_map.get((book_id, fmt))
-    if not stem:
-        abort(404)
-    filepath = LIBRARY_PATH / book["path"] / f"{stem}.{fmt.lower()}"
-    return send_from_directory(str(filepath.parent), filepath.name, as_attachment=True, download_name=f"{stem}.{fmt.lower()}".replace("/","_")) if filepath.exists() else abort(404)
+	fmt = fmt.upper()
+	books, file_map = fetch_all_books()
+	book = next((b for b in books if b["id"]==book_id), None)
+	if not book:
+		abort(404)
+	stem = file_map.get((book_id, fmt))
+	if not stem:
+		abort(404)
+	filepath = LIBRARY_PATH / book["path"] / f"{stem}.{fmt.lower()}"
+	return send_from_directory(str(filepath.parent), filepath.name, as_attachment=True, download_name=f"{stem}.{fmt.lower()}".replace("/","_")) if filepath.exists() else abort(404)
 
 
 @app.route("/download_collection", methods=["POST"])
 def download_collection():
-    data = request.get_json(force=True)
-    ids = set(data.get("ids", []))
-    fmt_filter = data.get("format", "").upper()
-    books, file_map = fetch_all_books()
-    selected = [b for b in books if b["id"] in ids]
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        for book in selected:
-            formats = [f for f in book["formats"] if not fmt_filter or f==fmt_filter]
-            for fmt in formats:
-                stem = file_map.get((book["id"], fmt))
-                if not stem:
-                    continue
-                filepath = LIBRARY_PATH / book["path"] / f"{stem}.{fmt.lower()}"
-                if not filepath.exists():
-                    continue
-                author_safe = (book["authors"][0] if book["authors"] else "Unknown").replace("/","_")
-                title_safe = book["title"].replace("/","_")[:80]
-                zf.write(str(filepath), f"{author_safe}/{title_safe}.{fmt.lower()}")
-    buf.seek(0)
-    return send_file(buf, mimetype="application/zip", as_attachment=True, download_name="calibre_collection.zip")
+	data = request.get_json(force=True)
+	ids = set(data.get("ids", []))
+	fmt_filter = data.get("format", "").upper()
+	books, file_map = fetch_all_books()
+	selected = [b for b in books if b["id"] in ids]
+	buf = io.BytesIO()
+	with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+		for book in selected:
+			formats = [f for f in book["formats"] if not fmt_filter or f==fmt_filter]
+			for fmt in formats:
+				stem = file_map.get((book["id"], fmt))
+				if not stem:
+					continue
+				filepath = LIBRARY_PATH / book["path"] / f"{stem}.{fmt.lower()}"
+				if not filepath.exists():
+					continue
+				author_safe = (book["authors"][0] if book["authors"] else "Unknown").replace("/","_")
+				title_safe = book["title"].replace("/","_")[:80]
+				zf.write(str(filepath), f"{author_safe}/{title_safe}.{fmt.lower()}")
+	buf.seek(0)
+	return send_file(buf, mimetype="application/zip", as_attachment=True, download_name="calibre_collection.zip")
 
 
 # ========== MAIN ENTRY POINT ==========
 
 def main():
-    parser = argparse.ArgumentParser(description="Calibre Library Web Server")
-    parser.add_argument("--library", default="./", help="Path to Calibre library folder default to current folder.(./)")
-    parser.add_argument("--port", type=int, default=5000, help="Default port to 5000")
-    parser.add_argument("--host", default="0.0.0.0", help="Default to full open at http://0.0.0.0")
-    parser.add_argument("--browser", action="store_true", help="Open a browser tab automatically (default is not to open)")
-    args = parser.parse_args()
-    global LIBRARY_PATH
-    LIBRARY_PATH = Path(args.library).expanduser().resolve()
-    if not (LIBRARY_PATH / "metadata.db").exists():
-        print(f"❌ metadata.db not found in {LIBRARY_PATH}")
-        raise SystemExit(1)
-    print(f"📚 Serving library: {LIBRARY_PATH}")
-    print(f"🌐 Open http://{'localhost' if args.host=='0.0.0.0' else args.host}:{args.port}")
-    try: import rarfile; print("✅ rarfile found  – CBR reading enabled")
-    except ImportError: print("ℹ️  pip install rarfile   → enables in-browser CBR reading")
-    try: import mobi;    print("✅ mobi found     – MOBI reading enabled")
-    except ImportError: print("ℹ️  pip install mobi      → enables in-browser MOBI reading")
-    if args.browser:
-        import threading, webbrowser
-        threading.Timer(1.2, lambda: webbrowser.open(f"http://localhost:{args.port}")).start()
-    from waitress import serve
-    serve(app, host=args.host, port=args.port, threads=8)
+	parser = argparse.ArgumentParser(description="Calibre Library Web Server")
+	parser.add_argument("--library", default="./", help="Path to Calibre library folder default to current folder.(./)")
+	parser.add_argument("--port", type=int, default=5000, help="Default port to 5000")
+	parser.add_argument("--host", default="0.0.0.0", help="Default to full open at http://0.0.0.0")
+	parser.add_argument("--browser", action="store_true", help="Open a browser tab automatically (default is not to open)")
+	args = parser.parse_args()
+	global LIBRARY_PATH
+	LIBRARY_PATH = Path(args.library).expanduser().resolve()
+	if not (LIBRARY_PATH / "metadata.db").exists():
+		print(f"❌ metadata.db not found in {LIBRARY_PATH}")
+		raise SystemExit(1)
+	print(f"📚 Serving library: {LIBRARY_PATH}")
+	print(f"🌐 Open http://{'localhost' if args.host=='0.0.0.0' else args.host}:{args.port}")
+	try: import rarfile; print("✅ rarfile found  – CBR reading enabled")
+	except ImportError: print("ℹ️  pip install rarfile   → enables in-browser CBR reading")
+	try: import mobi;	print("✅ mobi found	 – MOBI reading enabled")
+	except ImportError: print("ℹ️  pip install mobi	  → enables in-browser MOBI reading")
+	if args.browser:
+		import threading, webbrowser
+		threading.Timer(1.2, lambda: webbrowser.open(f"http://localhost:{args.port}")).start()
+	from waitress import serve
+	serve(app, host=args.host, port=args.port, threads=8)
 
 
 if __name__ == "__main__":
-    main()
+	main()
